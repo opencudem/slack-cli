@@ -1,6 +1,6 @@
 {
   "name": "@opencudem/slack-cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Cookie-first Slack CLI for channels, DMs, messages, and threads",
   "type": "module",
   "main": "dist/cli.js",
@@ -17,9 +17,7 @@
     "dev": "tsx src/cli.ts",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "login": "tsx src/cli.ts session:import",
-    "summary:today": "tsx scripts/today-summary.ts",
-    "fetch:all": "tsx scripts/fetch-all-messages.ts"
+    "login": "tsx src/cli.ts session:import"
   },
   "engines": {
     "node": ">=20"
