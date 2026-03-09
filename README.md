@@ -12,11 +12,11 @@ Cookie-first Slack CLI MVP.
 ## Open source release checklist
 
 - [x] Pick final package name: `@opencudem/slack-cli`.
-- [ ] Update `LICENSE` copyright holder line.
+- [x] Update `LICENSE` copyright holder line.
 - [x] Create a public GitHub repository under `opencudem` and add it as `origin`.
 - [x] Push code to `main` (initial publish-ready commit).
 - [ ] Login to npm (`npm login`) and verify access (`npm whoami`).
-- [ ] Dry run package contents (`npm pack --dry-run`).
+- [x] Dry run package contents (`npm pack --dry-run`).
 - [ ] Publish initial release (`npm publish`).
 - [x] Add repository metadata in `package.json` (`repository`, `bugs`, `homepage`, `publishConfig.access=public`).
 
