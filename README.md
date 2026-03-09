@@ -90,27 +90,132 @@ For Enterprise Grid, use the full domain shown by `workspace:list` (example: `ac
 
 Use this exact block when asking an AI agent to operate this project:
 
-```text
-Use the slack-cli workflow for Slack data tasks.
+````text
+---
+name: slack-cli-helper
+description: Use this skill whenever the user asks to read or inspect Slack workspace data through this project's unofficial cookie-based `slack-cli` (channels, DMs, messages, threads, workspace discovery, account switching, session import/check). Trigger on requests mentioning Slack data extraction, channel history, DM history, thread replies, cursors/pagination, or cookie/session-based Slack access—even if the user does not explicitly say "use a skill." Do not treat this as Slack's official CLI or app-based OAuth flow.
+---
 
-Primary commands:
-- session:import (header/json/file)
-- session:check
-- workspace:list
-- view:channels
-- view:dms
-- view:messages (use --include-replies when thread context is needed)
-- view:threads
-- view:dm-messages
+# Slack CLI Helper (cookie-first, unofficial)
 
-Output preference:
-- Use --json for machine-readable outputs.
-- Include workspace and command used in the response.
-- If paginated, return next cursor and explain how to continue.
+This skill guides an agent to use the installed `@opencudem/slack-cli` package correctly.
 
-Troubleshooting:
-- If auth fails, rerun session:import then session:check.
-- If results are incomplete, increase --limit and page via --cursor.
+## What this skill is for
+
+Use this when the user wants Slack data from their personal/account session using browser cookies, such as:
+- listing accessible workspaces
+- viewing channels or DMs
+- reading messages in channels/DMs
+- reading thread replies
+- paginating with cursors
+- switching between named local accounts
+
+This is **not** Slack's official CLI workflow and does **not** require creating Slack apps, bot tokens, or OAuth installs.
+
+## Operating rules
+
+1. Treat this as an installed npm package workflow.
+   - install globally: `npm install -g @opencudem/slack-cli`
+   - or run without global install: `npx @opencudem/slack-cli <command and flags>`
+2. If globally installed, prefer `slack-cli <command>`.
+3. For automation/parsing, include `--json` whenever available.
+4. Never ask users to post raw cookie values in public logs/chat if avoidable. Prefer local file input.
+5. If auth/session fails, recover with `session:import` then `session:check`.
+
+## Core command map
+
+### Session/auth
+- `session:import`
+  - from file: `--file ./cookies.json`
+  - from header: `--header "d=...; x=..."`
+  - from inline json: `--json "[...]"`
+  - optional account target: `--account <name>`
+- `session:check`
+  - validates active or specified account session
+
+### Accounts
+- `account:list`
+- `account:use --account <name>`
+- `account:remove --account <name>`
+
+### Workspace discovery
+- `workspace:list`
+
+### Data reads
+- `view:channels --workspace <workspace> [--limit N] [--json]`
+- `view:dms --workspace <workspace> [--limit N] [--json]`
+- `view:messages --workspace <workspace> --channel <C...|D...|G...> [--limit N] [--oldest TS] [--cursor CURSOR] [--include-replies] [--json]`
+- `view:threads --workspace <workspace> --channel <C...|G...> --thread-ts <TS> [--limit N] [--cursor CURSOR] [--json]`
+- `view:dm-messages --workspace <workspace> --dm <D...> [--limit N] [--oldest TS] [--cursor CURSOR] [--include-replies] [--json]`
+
+## Recommended execution flow
+
+1. **Ensure valid session**
+   - run `slack-cli session:check` (or `npx @opencudem/slack-cli session:check`)
+   - if invalid/missing: import session then re-check
+2. **Confirm workspace**
+   - run `slack-cli workspace:list` (or npx equivalent) if workspace is unknown
+3. **Run the target read command**
+   - channels/dms/messages/threads based on user ask
+4. **Handle pagination**
+   - if `next_cursor` (or printed next cursor) exists, offer follow-up command using `--cursor`
+5. **Return concise result**
+   - include command used, workspace used, and whether more pages exist
+
+## Response template
+
+When reporting results, use this structure:
+
+```markdown
+## Command
+`<exact command>`
+
+## Scope
+- workspace: `<workspace>`
+- account: `<account or active>`
+
+## Result
+- <short summary of rows/messages/channels found>
+
+## Pagination
+- next_cursor: `<value or none>`
+- continue with: `<command including --cursor ...>`
+````
+
+## Examples
+
+### Example 1: user asks "show latest messages in #eng"
+
+1. Validate session:
+   - `slack-cli session:check`
+2. Resolve workspace/channel as needed, then:
+   - `slack-cli view:messages --workspace acme-team --channel C1234567890 --limit 30 --json`
+3. If paginated, continue with:
+   - `slack-cli view:messages --workspace acme-team --channel C1234567890 --cursor <NEXT_CURSOR> --limit 30 --json`
+
+### Example 2: user asks "list my DMs"
+
+- `slack-cli view:dms --workspace acme-team --limit 30 --json`
+
+### Example 3: auth failure recovery
+
+1. `slack-cli session:import --account work --file ./cookies-work.json`
+2. `slack-cli session:check --account work`
+3. retry data command with `--account work`
+
+## Troubleshooting heuristics
+
+- "No active session/account": run `slack-cli account:list`, then `slack-cli account:use` or `slack-cli session:import`.
+- "Unauthorized/invalid auth": re-import cookies and run `slack-cli session:check`.
+- Incomplete results: increase `--limit` and page with `--cursor`.
+- Enterprise Grid workspace handling: pass the domain style shown by `slack-cli workspace:list`.
+
+## Boundaries
+
+- Do not invent unsupported write operations.
+- Do not claim official Slack CLI compatibility.
+- Stay within read-oriented commands exposed by this project unless user explicitly confirms newer capabilities exist.
+
 ```
 
 ## TODO (Slack functionality backlog)
@@ -139,3 +244,4 @@ Troubleshooting:
 - Account sessions are encrypted and stored under `output/sessions/`.
 - Legacy single-session state may still exist at `output/session.enc.json` and is auto-migrated.
 - The encryption key is machine/user derived, so session files are not portable across machines/users.
+```

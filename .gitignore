@@ -1,6 +1,7 @@
 # OpenMemory - IDE/Assistant specific rules
 .cursor\rules\openmemory.mdc
 .cursor/
+.claude/
 
 # Runtime artifacts
 node_modules/
