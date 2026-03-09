@@ -1,0 +1,10 @@
+# OpenMemory - IDE/Assistant specific rules
+.cursor\rules\openmemory.mdc
+.cursor/
+
+# Runtime artifacts
+node_modules/
+dist/
+output/
+cookies.json
+openmemory.md
