@@ -1,88 +1,117 @@
 # slack-cli
 
-Cookie-first Slack CLI MVP.
+Cookie-first Slack CLI for reading Slack workspaces, channels, DMs, messages, and thread replies.
 
 ## Install
 
-- Global install (after publish):
+- Global install:
   - `npm install -g @opencudem/slack-cli`
 - Run without global install:
   - `npx @opencudem/slack-cli session:check`
 
-## Open source release checklist
+## CLI usage
 
-- [x] Pick final package name: `@opencudem/slack-cli`.
-- [x] Update `LICENSE` copyright holder line.
-- [x] Create a public GitHub repository under `opencudem` and add it as `origin`.
-- [x] Push code to `main` (initial publish-ready commit).
-- [ ] Login to npm (`npm login`) and verify access (`npm whoami`).
-- [x] Dry run package contents (`npm pack --dry-run`).
-- [ ] Publish initial release (`npm publish`).
-- [x] Add repository metadata in `package.json` (`repository`, `bugs`, `homepage`, `publishConfig.access=public`).
+### 1) Import and validate session
 
-## Cookie import
-
-- Header mode:
-  - `npm run dev -- session:import --header 'd=...; x=...; ...'`
-- JSON file mode:
-  - `npm run dev -- session:import --file ./cookies.json`
-- Inline JSON mode:
-  - `npm run dev -- session:import --json '[{"name":"d","value":"...","domain":".slack.com","path":"/"}]'`
+- Import from cookie header:
+  - `slack-cli session:import --header "d=...; x=...; ..."`
+- Import from cookie JSON file:
+  - `slack-cli session:import --file ./cookies.json`
+- Import from inline JSON:
+  - `slack-cli session:import --json "[{\"name\":\"d\",\"value\":\"...\",\"domain\":\".slack.com\",\"path\":\"/\"}]"`
 - Import into a named account:
-  - `npm run dev -- session:import --account work --file ./cookies-work.json`
-  - `npm run dev -- session:import --account personal --file ./cookies-personal.json`
-  - Add `--no-set-active` to keep the current active account unchanged.
+  - `slack-cli session:import --account work --file ./cookies-work.json`
+  - `slack-cli session:import --account personal --file ./cookies-personal.json`
+  - Add `--no-set-active` to keep current active account unchanged.
+- Validate session:
+  - `slack-cli session:check`
+  - `slack-cli session:check --account work`
 
-## Session check
-
-- `npm run dev -- session:check`
-- `npm run dev -- session:check --account work`
-
-## Account management
+### 2) Manage accounts
 
 - List accounts:
-  - `npm run dev -- account:list`
-- Switch active account:
-  - `npm run dev -- account:use --account work`
+  - `slack-cli account:list`
+- Set active account:
+  - `slack-cli account:use --account work`
 - Remove non-active account:
-  - `npm run dev -- account:remove --account personal`
+  - `slack-cli account:remove --account personal`
 
 If a legacy single-session file exists at `output/session.enc.json`, it is auto-migrated to account `default` on first auth access.
 
-## Workspace helper
+### 3) Discover workspaces
 
-- `npm run dev -- workspace:list`
-- `npm run dev -- workspace:list --account work`
+- `slack-cli workspace:list`
+- `slack-cli workspace:list --account work`
 
-## Basic read commands (single workspace)
+### 4) Read channels, DMs, messages, and threads
 
-Use workspace subdomain (example: `gear-games` for `https://gear-games.slack.com`).
-For Enterprise Grid style workspaces, use the full domain shown by `workspace:list` (example: `seconddinner.enterprise.slack.com`).
+Use workspace subdomain (example: `acme-team` for `https://acme-team.slack.com`).
+For Enterprise Grid, use the full domain shown by `workspace:list` (example: `acme.enterprise.slack.com`).
 
 - View channels:
-  - `npm run dev -- view:channels --workspace gear-games --limit 50`
-  - `npm run dev -- view:channels --workspace gear-games --json`
-  - `npm run dev -- view:channels --account work --workspace gear-games --json`
+  - `slack-cli view:channels --workspace acme-team --limit 50`
+  - `slack-cli view:channels --workspace acme-team --json`
+  - `slack-cli view:channels --account work --workspace acme-team --json`
 - View DMs:
-  - `npm run dev -- view:dms --workspace gear-games --limit 30`
-  - `npm run dev -- view:dms --workspace gear-games --json`
+  - `slack-cli view:dms --workspace acme-team --limit 30`
+  - `slack-cli view:dms --workspace acme-team --json`
 - View messages in channel/DM:
-  - `npm run dev -- view:messages --workspace gear-games --channel C1234567890 --limit 30`
-  - `npm run dev -- view:messages --workspace gear-games --channel D1234567890 --oldest 1710000000.000100`
-  - `npm run dev -- view:messages --workspace gear-games --channel C1234567890 --cursor dXNlcjpVMD...`
-  - `npm run dev -- view:messages --workspace gear-games --channel C1234567890 --json`
+  - `slack-cli view:messages --workspace acme-team --channel C1234567890 --limit 30`
+  - `slack-cli view:messages --workspace acme-team --channel D1234567890 --oldest 1710000000.000100`
+  - `slack-cli view:messages --workspace acme-team --channel C1234567890 --cursor dXNlcjpVMD...`
+  - `slack-cli view:messages --workspace acme-team --channel C1234567890 --include-replies --json`
 - View thread replies:
-  - `npm run dev -- view:threads --workspace gear-games --channel C1234567890 --thread-ts 1710000000.000100 --limit 30`
-  - `npm run dev -- view:threads --workspace gear-games --channel C1234567890 --thread-ts 1710000000.000100 --cursor dXNlcjpVMD...`
-  - `npm run dev -- view:threads --workspace gear-games --channel C1234567890 --thread-ts 1710000000.000100 --json`
+  - `slack-cli view:threads --workspace acme-team --channel C1234567890 --thread-ts 1710000000.000100 --limit 30`
+  - `slack-cli view:threads --workspace acme-team --channel C1234567890 --thread-ts 1710000000.000100 --cursor dXNlcjpVMD...`
+  - `slack-cli view:threads --workspace acme-team --channel C1234567890 --thread-ts 1710000000.000100 --json`
 - DM alias command:
-  - `npm run dev -- view:dm-messages --workspace gear-games --dm D1234567890 --limit 30`
+  - `slack-cli view:dm-messages --workspace acme-team --dm D1234567890 --limit 30`
 
-## Output tips
+### 5) Output behavior
 
 - `view:dms` now prints both `peer` id and resolved `peerName`.
 - `view:messages` and `view:threads` print both `user` id and resolved `userName`.
 - If more data exists, the CLI prints `Next cursor`; pass it to `--cursor` for the next page.
+
+## Development
+
+- Install dependencies:
+  - `npm install`
+- Run in dev mode:
+  - `npm run dev -- --help`
+- Build:
+  - `npm run build`
+- Typecheck:
+  - `npm run typecheck`
+- Run local CLI build directly:
+  - `node dist/cli.js workspace:list`
+
+## READY to Copy: Agent Skill blurb
+
+Use this exact block when asking an AI agent to operate this project:
+
+```text
+Use the slack-cli workflow for Slack data tasks.
+
+Primary commands:
+- session:import (header/json/file)
+- session:check
+- workspace:list
+- view:channels
+- view:dms
+- view:messages (use --include-replies when thread context is needed)
+- view:threads
+- view:dm-messages
+
+Output preference:
+- Use --json for machine-readable outputs.
+- Include workspace and command used in the response.
+- If paginated, return next cursor and explain how to continue.
+
+Troubleshooting:
+- If auth fails, rerun session:import then session:check.
+- If results are incomplete, increase --limit and page via --cursor.
+```
 
 ## TODO (Slack functionality backlog)
 
